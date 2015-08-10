@@ -22,18 +22,6 @@ install:
 script:
   - "tox -e $TOX_ENV"
 
-after_success:
-  - "if [ $TOX_ENV == 'py27' ]; then pip install coveralls; coveralls; fi"
-
 branches:
   except:
     - debian
-
-notifications:
-  irc:
-    channels:
-      - "irc.freenode.org#mopidy"
-    on_success: change
-    on_failure: change
-    use_notice: true
-    skip_join: true
