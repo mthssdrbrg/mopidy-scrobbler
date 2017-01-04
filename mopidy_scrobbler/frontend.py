@@ -37,7 +37,7 @@ class ScrobblerFrontend(pykka.ThreadingActor, CoreListener):
 
     def track_playback_started(self, tl_track):
         track = tl_track.track
-        artists = ', '.join(sorted([a.name for a in track.artists]))
+        artists = self.extract_artist(track)
         duration = track.length and track.length // 1000 or 0
         self.last_start_time = int(time.time())
         logger.debug('Now playing track: %s - %s', artists, track.name)
@@ -55,7 +55,7 @@ class ScrobblerFrontend(pykka.ThreadingActor, CoreListener):
 
     def track_playback_ended(self, tl_track, time_position):
         track = tl_track.track
-        artists = ', '.join(sorted([a.name for a in track.artists]))
+        artists = self.extract_artist(track)
         duration = track.length and track.length // 1000 or 0
         time_position = time_position // 1000
         if duration < 30:
@@ -80,3 +80,10 @@ class ScrobblerFrontend(pykka.ThreadingActor, CoreListener):
         except (pylast.ScrobblingError, pylast.NetworkError,
                 pylast.MalformedResponseError, pylast.WSError) as e:
             logger.warning('Error submitting played track to Last.fm: %s', e)
+
+    def extract_artist(self, track):
+        use_albumartist = self.config.get('use_albumartist')
+        if  use_albumartist and track.album and track.album.artists:
+            track.album.artists[0].name
+        else:
+            ', '.join(sorted([a.name for a in track.artists]))
